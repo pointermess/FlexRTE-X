@@ -1,20 +1,17 @@
 #include "BuildOptions.h"
 #include "Memory.h"
 
-namespace Flex
+namespace FlexRTE
 {
-    namespace RTE
+    class MemoryManager
     {
-        class MemoryManager
-        {
-        private:
-            char * _MemoryArray;
-            unsigned int _ReservedMemory = 0;
+    private:
+        char * _MemoryArray;
+        unsigned int _ReservedMemory = 0;
 
-            Memory * _Memory;
-        public:
-            MemoryManager();
-            ~MemoryManager();
-        };
-    }
+        Memory * _Memory;
+    public:
+        MemoryManager();
+        ~MemoryManager();
+    };
 }

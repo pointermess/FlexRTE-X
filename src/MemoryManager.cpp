@@ -8,13 +8,13 @@
 #endif
 
 
-Flex::RTE::MemoryManager::MemoryManager()
+FlexRTE::MemoryManager::MemoryManager()
 {
     _MemoryArray = new char[OPTIONS_RTE_MEMORY_FULLSIZE];
     _Memory = new Memory(_MemoryArray, OPTIONS_RTE_MEMORY_FULLSIZE);
 }
 
-Flex::RTE::MemoryManager::~MemoryManager()
+FlexRTE::MemoryManager::~MemoryManager()
 {
     delete _MemoryArray;
     free(_Memory);
