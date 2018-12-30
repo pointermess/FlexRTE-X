@@ -1,9 +1,9 @@
 #pragma once
 #include "..\BuildOptions.h"
 
-namespace Flex
+namespace FlexRTE
 {
-    namespace RTE
+    namespace DriverInterface
     {
         class FileIO
         {

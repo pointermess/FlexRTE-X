@@ -9,7 +9,7 @@
     #include <stdlib.h>
 #endif
 
-char* Flex::RTE::FileIO::ReadFileBytes(const char *name, unsigned int * size)
+char* FlexRTE::DriverInterface::FileIO::ReadFileBytes(const char *name, unsigned int * size)
 {
     // Platform specific branches
 #if (OPTIONS_TARGET_BASED_WINDOWS)
