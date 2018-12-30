@@ -1,35 +1,43 @@
 #include "BuildOptions.h"
 #include "Program.h"
 #include "MemoryManager.h"
+#include "LookupTable.h"
 
-
-namespace Flex
-{
-    namespace RTE
-    {
-        enum LoadProgramResult
-        {
-            Error,
-            OK,
-            UnloadFirst
-        };
-
-        class Engine
-        {
-        private:
-#if (OPTIONS_RTE_ENGINE_MULTIPROGRAM == 0)
-            Program * ActiveProgram;
-#else
-            Program * Programs;
-            unsigned char ProgramIndex = 0;
-            unsigned char ProgramCount = 0;
+#if (OPTIONS_RTE_INTERPRETER_HIGHPERFORMANCE == 1)
 #endif
-        public:
 
-            LoadProgramResult LoadProgram(Program* program);
-            bool UnloadProgram(Program * program);
+namespace FlexRTE
+{
+#pragma once
 
-            bool Step();
-        };
-    }
-}
+    typedef void(*ExecuteInstructionMethod)(Program * program);
+    enum LoadProgramResult
+    {
+        Error,
+        OK,
+        UnloadFirst
+    };
+
+    class Engine
+    {
+    private:
+        Program * ActiveProgram;
+#if (OPTIONS_RTE_ENGINE_MULTIPROGRAM == 0)
+#else   
+        Program * Programs;
+        unsigned char ProgramIndex = 0;
+        unsigned char ProgramCount = 0;
+#endif
+
+
+#if (OPTIONS_RTE_INTERPRETER_HIGHPERFORMANCE == 1)
+        ExecuteInstructionMethod * InstructionLookupTable = new ExecuteInstructionMethod[256];
+#endif
+    public:
+        Engine();
+        LoadProgramResult LoadProgram(Program* program);
+        bool UnloadProgram(Program * program);
+
+        bool Step();
+    };
+}void tests(FlexRTE::Program * program);
