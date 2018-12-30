@@ -2,7 +2,7 @@
 #include "Program.h"
 #include "DriverInterfaces/FileIO.h"
 
-char Flex::RTE::Program::ReadByte(unsigned int * stepsTaken)
+char FlexRTE::Program::ReadByte(unsigned int * stepsTaken)
 {
     *stepsTaken += 1;
 
@@ -12,7 +12,7 @@ char Flex::RTE::Program::ReadByte(unsigned int * stepsTaken)
 #endif
 }
 
-short Flex::RTE::Program::ReadWord(unsigned int * stepsTaken)
+short FlexRTE::Program::ReadWord(unsigned int * stepsTaken)
 {
     *stepsTaken += 2;
 
@@ -22,7 +22,7 @@ short Flex::RTE::Program::ReadWord(unsigned int * stepsTaken)
 #endif
 }
 
-int Flex::RTE::Program::ReadDWord(unsigned int * stepsTaken)
+int FlexRTE::Program::ReadDWord(unsigned int * stepsTaken)
 {
     *stepsTaken += 4;
 
@@ -34,25 +34,54 @@ int Flex::RTE::Program::ReadDWord(unsigned int * stepsTaken)
 #endif
 }
 
-Flex::RTE::Program::Program()
+FlexRTE::Program::Program()
 {
 }
 
-void Flex::RTE::Program::LoadFromFile(const char * path)
+bool FlexRTE::Program::Initialize()
+{
+    unsigned int steps = 0;
+
+    int prefix = ReadDWord(&steps);
+
+    // Check for "FAE" + 0x00 type information heaeder.
+    if (prefix == 0x46414500)
+    {
+        char version = ReadByte(&steps);
+
+        int headerSize = ReadDWord(&steps);
+        int dataSize = ReadDWord(&steps);
+        int textSize = ReadDWord(&steps);
+
+        _ProgramCounter += steps;
+
+        return true;
+    }
+
+    return false;
+}
+
+void FlexRTE::Program::LoadFromFile(const char * path)
 {
     // needs to free last program from ram
     unsigned int size = 0;
 #if (OPTIONS_RTE_PROGRAM_KEEPCODEINMEMORY == 1)
-    _ProgramCode = Flex::RTE::FileIO::ReadFileBytes(path, &size);
+    _ProgramCode = DriverInterface::FileIO::ReadFileBytes(path, &size);
 #endif
     _ProgramSize = size;
 }
 
-bool Flex::RTE::Program::Step()
+bool FlexRTE::Program::Step()
 {
+    LookupTable[0](this);
     return false;
 }
 
-void Flex::RTE::Program::SetMemory(Memory & memory)
+void FlexRTE::Program::SetMemory(Memory & memory)
 {
+}
+
+FlexRTE::Memory * FlexRTE::Program::GetMemory()
+{
+    return _Memory;
 }

@@ -3,55 +3,62 @@
 #include "BuildOptions.h"
 #include "Memory.h"
 
-namespace Flex
+namespace FlexRTE
 {
-    namespace RTE
+#pragma once
+    class Program;
+    typedef void(*ExecuteInstructionMethod)(Program * program);
+    enum ProgramPriority
     {
-        enum ProgramPriority
-        {
-            Default,
-            VeryLow,
-            Low,
-            Medium,
-            High,
-            VeryHigh
-        };
+        VeryLow,
+        Low,
+        Normal,
+        High,
+        VeryHigh
+    };
 
-        class Program
-        {
-        private:
-            Memory * _Memory;
+    class Program
+    {
+    private:
+        Memory * _Memory;
 
 
-        #if (OPTIONS_RTE_PROGRAM_KEEPCODEINMEMORY == 1)
-            char* _ProgramCode;
-        #endif
-            unsigned int _ProgramSize = 0;
-            unsigned int _ProgramCounter = 0;
+#if (OPTIONS_RTE_PROGRAM_KEEPCODEINMEMORY == 1)
+        char* _ProgramCode;
+#endif
+        unsigned int _ProgramSize = 0;
+        unsigned int _ProgramCounter = 0;
 
-            // Read from program code
-            // Basic types
-            char ReadByte(unsigned int * stepsTaken);
-            short ReadWord(unsigned int * stepsTaken);
-            int ReadDWord(unsigned int * stepsTaken);
+        // Read from program code
+        // Basic types
+        char ReadByte(unsigned int * stepsTaken);
+        short ReadWord(unsigned int * stepsTaken);
+        int ReadDWord(unsigned int * stepsTaken);
 
-            // Complex types
-            char ReadRegister(unsigned int * stepsTaken);
-            char ReadAddress(unsigned int * stepsTaken);
+        // Complex types
+        char ReadConstant(unsigned int * stepsTaken);
+        char ReadRegister(unsigned int * stepsTaken);
+        char ReadAddress(unsigned int * stepsTaken);
 
 
-        public:
-            ProgramPriority Priority = ProgramPriority::Default;
+    public:
 
-            Program();
+#if (OPTIONS_RTE_INTERPRETER_HIGHPERFORMANCE == 1)
+        ExecuteInstructionMethod * LookupTable;
+#endif
+        ProgramPriority Priority = ProgramPriority::Normal;
 
-            void LoadFromFile(const char * path);
+        Program();
 
-            unsigned int GetProgramCounter() { unsigned int test = 0; return ReadDWord(&test); };
+        bool Initialize();
 
-            bool Step();
+        void LoadFromFile(const char * path);
 
-            void SetMemory(Memory& memory);
-        };
-    }
+        unsigned int GetProgramCounter() { unsigned int test = 0; return ReadDWord(&test); };
+
+        bool Step();
+
+        void SetMemory(Memory& memory);
+        Memory * GetMemory();
+    };
 }
