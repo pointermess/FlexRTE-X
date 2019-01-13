@@ -7,15 +7,22 @@
 #include <stdlib.h>
 #endif
 
+using namespace FlexRTE;
 
-FlexRTE::MemoryManager::MemoryManager()
+MemoryManager::MemoryManager()
 {
+    Memory::InitializeLookupTable();
     _MemoryArray = new char[OPTIONS_RTE_MEMORY_FULLSIZE];
     _Memory = new Memory(_MemoryArray, OPTIONS_RTE_MEMORY_FULLSIZE);
 }
 
-FlexRTE::MemoryManager::~MemoryManager()
+MemoryManager::~MemoryManager()
 {
     delete _MemoryArray;
     free(_Memory);
+}
+
+char * FlexRTE::MemoryManager::GetMemoryArray()
+{
+    return _MemoryArray;
 }

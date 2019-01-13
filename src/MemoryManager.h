@@ -13,5 +13,7 @@ namespace FlexRTE
     public:
         MemoryManager();
         ~MemoryManager();
+
+        char * GetMemoryArray();
     };
 }
