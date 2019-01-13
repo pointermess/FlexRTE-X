@@ -10,7 +10,7 @@ namespace FlexRTE
 {
 #pragma once
 
-    typedef void(*ExecuteInstructionMethod)(Program * program);
+    typedef void(*ExecuteInstructionMethod)(Program * program, unsigned int * steps);
     enum LoadProgramResult
     {
         Error,
@@ -34,10 +34,12 @@ namespace FlexRTE
         ExecuteInstructionMethod * InstructionLookupTable = new ExecuteInstructionMethod[256];
 #endif
     public:
+        MemoryManager * MemoryManager;
         Engine();
         LoadProgramResult LoadProgram(Program* program);
         bool UnloadProgram(Program * program);
 
         bool Step();
+        void Execute();
     };
-}void tests(FlexRTE::Program * program);
+}
