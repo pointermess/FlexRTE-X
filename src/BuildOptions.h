@@ -30,3 +30,7 @@
 #define OPTIONS_RTE_MEMORY_FULLSIZE 128000
 #define OPTIONS_RTE_MEMORY_APPSIZE 8000
 #define OPTIONS_RTE_MEMORY_ALLOWDYNAMICAPPSIZE true
+
+// [Experimental] OPTIONS_RTE_MEMORY_USEPOINTERS
+// Uses pointers to read and write values from / to memory.
+#define OPTIONS_RTE_MEMORY_USEPOINTERS true
