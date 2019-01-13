@@ -9,7 +9,7 @@
     #include <stdlib.h>
 #endif
 
-char* FlexRTE::DriverInterface::FileIO::ReadFileBytes(const char *name, unsigned int * size)
+unsigned char* FlexRTE::DriverInterface::FileIO::ReadFileBytes(const char *name, unsigned int * size)
 {
     // Platform specific branches
 #if (OPTIONS_TARGET_BASED_WINDOWS)
@@ -22,7 +22,7 @@ char* FlexRTE::DriverInterface::FileIO::ReadFileBytes(const char *name, unsigned
     fseek(fl, 0, SEEK_END);
     long len = ftell(fl);
     *size = len;
-    char *ret = (char*)malloc(len);
+    unsigned char *ret = (unsigned char*)malloc(len);
     fseek(fl, 0, SEEK_SET);
     fread(ret, 1, len, fl);
     fclose(fl);

@@ -8,7 +8,7 @@ namespace FlexRTE
         class FileIO
         {
         public:
-            static char* ReadFileBytes(const char *name, unsigned int *size);
+            static unsigned char* ReadFileBytes(const char *name, unsigned int *size);
         };
     }
 }
