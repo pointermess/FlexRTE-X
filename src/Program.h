@@ -2,12 +2,13 @@
 
 #include "BuildOptions.h"
 #include "Memory.h"
+#include "Types.h"
 
 namespace FlexRTE
 {
 #pragma once
     class Program;
-    typedef void(*ExecuteInstructionMethod)(Program * program);
+    typedef void(*ExecuteInstructionMethod)(Program * program, unsigned int * steps);
     enum ProgramPriority
     {
         VeryLow,
@@ -20,31 +21,20 @@ namespace FlexRTE
     class Program
     {
     private:
-        Memory * _Memory;
 
 
 #if (OPTIONS_RTE_PROGRAM_KEEPCODEINMEMORY == 1)
-        char* _ProgramCode;
+        unsigned char* _ProgramCode;
 #endif
         unsigned int _ProgramSize = 0;
         unsigned int _ProgramCounter = 0;
 
-        // Read from program code
-        // Basic types
-        char ReadByte(unsigned int * stepsTaken);
-        short ReadWord(unsigned int * stepsTaken);
-        int ReadDWord(unsigned int * stepsTaken);
-
-        // Complex types
-        char ReadConstant(unsigned int * stepsTaken);
-        char ReadRegister(unsigned int * stepsTaken);
-        char ReadAddress(unsigned int * stepsTaken);
 
 
     public:
-
+        Memory * _Memory;
 #if (OPTIONS_RTE_INTERPRETER_HIGHPERFORMANCE == 1)
-        ExecuteInstructionMethod * LookupTable;
+        ExecuteInstructionMethod * LookupTable = new ExecuteInstructionMethod[255];
 #endif
         ProgramPriority Priority = ProgramPriority::Normal;
 
@@ -60,5 +50,16 @@ namespace FlexRTE
 
         void SetMemory(Memory& memory);
         Memory * GetMemory();
+
+        // Read from program code
+        // Basic types
+        inline char ReadByte(unsigned int * stepsTaken);
+        inline short ReadWord(unsigned int * stepsTaken);
+        inline int ReadDWord(unsigned int * stepsTaken);
+
+        // Complex types
+        BinaryConstant ReadConstant(unsigned int * stepsTaken);
+        BinaryRegister ReadRegister(unsigned int * stepsTaken);
+        //char ReadAddress(unsigned int * stepsTaken);
     };
 }

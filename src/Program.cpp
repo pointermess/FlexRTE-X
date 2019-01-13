@@ -1,8 +1,11 @@
 
 #include "Program.h"
+#include "Types.h"
 #include "DriverInterfaces/FileIO.h"
 
-char FlexRTE::Program::ReadByte(unsigned int * stepsTaken)
+using namespace FlexRTE;
+
+inline  char FlexRTE::Program::ReadByte(unsigned int * stepsTaken)
 {
     *stepsTaken += 1;
 
@@ -32,6 +35,26 @@ int FlexRTE::Program::ReadDWord(unsigned int * stepsTaken)
 #elif (OPTIONS_RTE_PROGRAM_KEEPCODEINMEMORY == 1)
     return ((((((this->_ProgramCode[beginAddr] << 8) + this->_ProgramCode[beginAddr + 1]) << 8) + this->_ProgramCode[beginAddr + 2]) << 8) + this->_ProgramCode[beginAddr + 3]);
 #endif
+}
+
+FlexRTE::BinaryConstant FlexRTE::Program::ReadConstant(unsigned int * stepsTaken)
+{
+    BinaryConstant result;
+    result.Size = (MemorySize)ReadByte(stepsTaken);
+
+    switch (result.Size)
+    {
+    case msByte: result.Value = ReadByte(stepsTaken);
+    case msWord: result.Value = ReadWord(stepsTaken);
+    case msDWord: result.Value = ReadDWord(stepsTaken);
+    }
+
+    return result;
+}
+
+BinaryRegister FlexRTE::Program::ReadRegister(unsigned int * stepsTaken)
+{
+    return { msDWord, (Register)ReadByte(stepsTaken) };
 }
 
 FlexRTE::Program::Program()
@@ -73,7 +96,12 @@ void FlexRTE::Program::LoadFromFile(const char * path)
 
 bool FlexRTE::Program::Step()
 {
-    LookupTable[0](this);
+    unsigned int steps = 1;
+
+#if (OPTIONS_RTE_INTERPRETER_HIGHPERFORMANCE == 1)
+    int instruction = this->_ProgramCode[this->_ProgramCounter];
+    LookupTable[instruction](this, &steps);
+#endif
     return false;
 }
 
