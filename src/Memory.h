@@ -13,7 +13,7 @@ namespace FlexRTE
 
 
         // Basic read & write methods
-        const unsigned int Read(const MemorySize size, const unsigned int position);
+        unsigned int Read(const MemorySize size, const unsigned int position);
         inline const unsigned char Read8(const unsigned int position);
         inline const unsigned short Read16(const unsigned int position);
         inline const unsigned int Read32(const unsigned int position);

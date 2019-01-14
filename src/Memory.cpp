@@ -9,6 +9,33 @@ FlexRTE::Memory::Memory(char * memory, unsigned int size)
     _Size = size;
 }
 
+unsigned int FlexRTE::Memory::Read(const MemorySize size, const unsigned int position)
+{
+    switch (size)
+    {
+    case (msByte): return Read8(position); break;
+    case (msWord): return Read16(position); break;
+    case (msDWord): return Read32(position); break;
+    }
+    return 0;
+
+}
+
+const unsigned char FlexRTE::Memory::Read8(const unsigned int position)
+{
+    return _Memory[position];
+}
+
+const unsigned short FlexRTE::Memory::Read16(const unsigned int position)
+{
+    return ((_Memory[position] << 8) + (_Memory[position + 1]));
+}
+
+const unsigned int FlexRTE::Memory::Read32(const unsigned int position)
+{
+    return ((((((_Memory[position] << 8) + _Memory[position + 1]) << 8) + _Memory[position + 2]) << 8) + _Memory[position + 3]);
+}
+
 void FlexRTE::Memory::Write(const MemorySize size, const unsigned int position, const unsigned int value)
 {
     switch (size)
