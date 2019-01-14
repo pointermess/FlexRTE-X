@@ -57,6 +57,30 @@ BinaryRegister FlexRTE::Program::ReadRegister(unsigned int * stepsTaken)
     return { msDWord, (Register)ReadByte(stepsTaken) };
 }
 
+void FlexRTE::Program::PrintExecutionReport()
+{
+    ConsoleIO::PrintF("------------------------------\n");
+    //float diff = ((float)(clock() - AProcessor->StartTime) / 1000000.0F) * 1000;
+//    ConsoleIO::PrintF("Program finished...\nExecution time: %.3f s\n------------------------------\n", diff);
+
+    //ConsoleIO::PrintF("Memory Size: %u bytes\n\n", FPMemory_GetMemorySize(AProcessor->Memory));
+
+    ConsoleIO::PrintF("Registers Data: \n");
+
+    ConsoleIO::PrintF("EAX Register: 0x%08x\n", GetMemory()->Read(msDWord, Memory::RegisterLookupTable[farEAX]));
+    ConsoleIO::PrintF("EBX Register: 0x%08x\n", GetMemory()->Read(msDWord, Memory::RegisterLookupTable[farEBX]));
+    ConsoleIO::PrintF("ECX Register: 0x%08x\n", GetMemory()->Read(msDWord, Memory::RegisterLookupTable[farECX]));
+    ConsoleIO::PrintF("EDX Register: 0x%08x\n", GetMemory()->Read(msDWord, Memory::RegisterLookupTable[farEDX]));
+    ConsoleIO::PrintF("ESP Register: 0x%08x\n", GetMemory()->Read(msDWord, Memory::RegisterLookupTable[farESP]));
+    ConsoleIO::PrintF("EBP Register: 0x%08x\n", GetMemory()->Read(msDWord, Memory::RegisterLookupTable[farEBP]));
+
+    printf("\n");
+
+    //printf("Program Counter: %u\n", AProcessor->ProgramCounter);
+
+    printf("------------------------------\n");
+}
+
 FlexRTE::Program::Program()
 {
 }
@@ -102,7 +126,11 @@ bool FlexRTE::Program::Step()
     int instruction = this->_ProgramCode[this->_ProgramCounter];
     LookupTable[instruction](this, &steps);
 #endif
-    return false;
+
+    _ProgramCounter += steps;
+
+
+    return _ProgramCounter >= _ProgramSize;
 }
 
 void FlexRTE::Program::SetMemory(Memory & memory)

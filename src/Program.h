@@ -3,6 +3,7 @@
 #include "BuildOptions.h"
 #include "Memory.h"
 #include "Types.h"
+#include "ConsoleIO.h"
 
 namespace FlexRTE
 {
@@ -61,5 +62,7 @@ namespace FlexRTE
         BinaryConstant ReadConstant(unsigned int * stepsTaken);
         BinaryRegister ReadRegister(unsigned int * stepsTaken);
         //char ReadAddress(unsigned int * stepsTaken);
+
+        void PrintExecutionReport();
     };
 }
