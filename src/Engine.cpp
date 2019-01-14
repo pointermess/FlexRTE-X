@@ -10,6 +10,11 @@ bool FlexRTE::Engine::UnloadProgram(Program * program)
     return false;
 }
 
+void FlexRTE::Engine::PrintExecutionReport()
+{
+    ActiveProgram->PrintExecutionReport();
+}
+
 bool FlexRTE::Engine::Step()
 {
     return false;
@@ -21,7 +26,7 @@ void FlexRTE::Engine::Execute()
 
     while (!finished)
     {
-        finished = ActiveProgram->Step();
+    finished = ActiveProgram->Step();
     }
 }
 

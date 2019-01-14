@@ -39,6 +39,8 @@ namespace FlexRTE
         LoadProgramResult LoadProgram(Program* program);
         bool UnloadProgram(Program * program);
 
+        void PrintExecutionReport();
+
         bool Step();
         void Execute();
     };
