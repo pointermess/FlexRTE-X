@@ -31,6 +31,13 @@
 #define OPTIONS_RTE_MEMORY_APPSIZE 8000
 #define OPTIONS_RTE_MEMORY_ALLOWDYNAMICAPPSIZE true
 
+// OPTIONS_RTE_MEMORY_CALCULATEADDRESS
+// Performance option when accessing registers in memory.
+// true = Uses lookup table. (Fast but requires 36 bytes of memory)
+// false = Calculates location each time register is accessed. (Slow but no memory usage)
+#define OPTIONS_RTE_MEMORY_REGISTERLOOKUPTABLE true
+
 // [Experimental] OPTIONS_RTE_MEMORY_USEPOINTERS
-// Uses pointers to read and write values from / to memory.
+// Uses direct pointers to read and write values from / to memory.
+// Might lead to crashes on some platforms.
 #define OPTIONS_RTE_MEMORY_USEPOINTERS true
