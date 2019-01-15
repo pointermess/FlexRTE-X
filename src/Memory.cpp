@@ -1,5 +1,4 @@
 #include "Memory.h"
-
 char FlexRTE::Memory::RegisterLookupTable[18];
 char FlexRTE::Memory::MemoryStartPosition;
 
@@ -23,17 +22,20 @@ unsigned int FlexRTE::Memory::Read(const MemorySize size, const unsigned int pos
 
 const unsigned char FlexRTE::Memory::Read8(const unsigned int position)
 {
-    return _Memory[position];
+    unsigned char * memory = (unsigned char*)(_Memory + position);
+    return *memory;
 }
 
 const unsigned short FlexRTE::Memory::Read16(const unsigned int position)
 {
-    return ((_Memory[position] << 8) + (_Memory[position + 1]));
+    unsigned short * memory = (unsigned short*)(_Memory + position);
+    return *memory;
 }
 
 const unsigned int FlexRTE::Memory::Read32(const unsigned int position)
 {
-    return ((((((_Memory[position] << 8) + _Memory[position + 1]) << 8) + _Memory[position + 2]) << 8) + _Memory[position + 3]);
+    unsigned int * memory = (unsigned int*)(_Memory + position);
+    return *memory;
 }
 
 void FlexRTE::Memory::Write(const MemorySize size, const unsigned int position, const unsigned int value)
@@ -46,12 +48,22 @@ void FlexRTE::Memory::Write(const MemorySize size, const unsigned int position, 
     }
 }
 
+inline void FlexRTE::Memory::Write8(const unsigned int position, const unsigned char value)
+{
+    unsigned char * memory = (unsigned char*)(_Memory + position);
+    *memory = value;
+}
+
+inline void FlexRTE::Memory::Write16(const unsigned int position, const unsigned short value)
+{
+    unsigned short * memory = (unsigned short*)(_Memory + position);
+    *memory = value;
+}
+
 inline void FlexRTE::Memory::Write32(const unsigned int position, const unsigned int value)
 {
-    _Memory[position] = value >> 24;
-    _Memory[position + 1] = value >> 16;
-    _Memory[position + 2] = value >> 8;
-    _Memory[position + 3] = value;
+    unsigned int * memory = (unsigned int*)(_Memory + position);
+    *memory = value;
 }
 
 void FlexRTE::Memory::InitializeLookupTable()
