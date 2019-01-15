@@ -2,6 +2,7 @@
 #include "Program.h"
 #include "Types.h"
 #include "DriverInterfaces/FileIO.h"
+#include "SystemCore.h"
 
 using namespace FlexRTE;
 
@@ -60,23 +61,25 @@ BinaryRegister FlexRTE::Program::ReadRegister(unsigned int * stepsTaken)
 void FlexRTE::Program::PrintExecutionReport()
 {
     ConsoleIO::PrintF("------------------------------\n");
-    //float diff = ((float)(clock() - AProcessor->StartTime) / 1000000.0F) * 1000;
-//    ConsoleIO::PrintF("Program finished...\nExecution time: %.3f s\n------------------------------\n", diff);
+    unsigned int time = DriverInterface::SystemCore::Clock() - DriverInterface::SystemCore::StartTime;
+    float diff = ((float)(time) / 1000000.0F) * 1000;
+    ConsoleIO::PrintF("Program finished...\nExecution time: %.3f s\n------------------------------\n", diff);
 
     //ConsoleIO::PrintF("Memory Size: %u bytes\n\n", FPMemory_GetMemorySize(AProcessor->Memory));
 
     ConsoleIO::PrintF("Registers Data: \n");
-
+    unsigned int ebx = GetMemory()->Read(msDWord, Memory::RegisterLookupTable[farEBX]);
     ConsoleIO::PrintF("EAX Register: 0x%08x\n", GetMemory()->Read(msDWord, Memory::RegisterLookupTable[farEAX]));
-    ConsoleIO::PrintF("EBX Register: 0x%08x\n", GetMemory()->Read(msDWord, Memory::RegisterLookupTable[farEBX]));
+    ConsoleIO::PrintF("EBX Register: 0x%08x\n", ebx);
     ConsoleIO::PrintF("ECX Register: 0x%08x\n", GetMemory()->Read(msDWord, Memory::RegisterLookupTable[farECX]));
     ConsoleIO::PrintF("EDX Register: 0x%08x\n", GetMemory()->Read(msDWord, Memory::RegisterLookupTable[farEDX]));
     ConsoleIO::PrintF("ESP Register: 0x%08x\n", GetMemory()->Read(msDWord, Memory::RegisterLookupTable[farESP]));
     ConsoleIO::PrintF("EBP Register: 0x%08x\n", GetMemory()->Read(msDWord, Memory::RegisterLookupTable[farEBP]));
 
+
     printf("\n");
 
-    //printf("Program Counter: %u\n", AProcessor->ProgramCounter);
+    printf("Program Counter: %u\n", _ProgramCounter);
 
     printf("------------------------------\n");
 }
