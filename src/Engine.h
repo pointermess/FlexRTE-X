@@ -2,6 +2,7 @@
 #include "Program.h"
 #include "MemoryManager.h"
 #include "LookupTable.h"
+#include "SystemCore.h"
 
 #if (OPTIONS_RTE_INTERPRETER_HIGHPERFORMANCE == 1)
 #endif

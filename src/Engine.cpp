@@ -22,6 +22,7 @@ bool FlexRTE::Engine::Step()
 
 void FlexRTE::Engine::Execute()
 {
+    DriverInterface::SystemCore::Initialize();
     bool finished = false;
 
     while (!finished)
@@ -52,6 +53,7 @@ void _FlexRTE_Instruction_MOV_REG_CONST(FlexRTE::Program * program, unsigned int
 
 FlexRTE::Engine::Engine()
 {
+
     #if (OPTIONS_RTE_INTERPRETER_HIGHPERFORMANCE == 1)
     // Prefill lookup table with exception method
     for (int c = 0; c < 256; c++)
