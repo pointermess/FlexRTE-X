@@ -29,7 +29,7 @@ namespace FlexRTE
         void Push();
 
         // Heap methods
-        const unsigned int FindFreeHeapMemory(const unsigned int size);
+        const unsigned int FindAvailableHeapMemory(const unsigned int size);
         const unsigned int AllocateHeapMemory(const unsigned int size);
         void FreeHeapMemory(const unsigned int address);
 
