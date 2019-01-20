@@ -22,7 +22,7 @@ short FlexRTE::Program::ReadWord(unsigned int * stepsTaken)
 
 #if (OPTIONS_RTE_PROGRAM_KEEPCODEINMEMORY == 0)
 #elif (OPTIONS_RTE_PROGRAM_KEEPCODEINMEMORY == 1)
-    return ((this->_ProgramCode[this->_ProgramCounter + *stepsTaken - 1] << 8) + (this->_ProgramCode[this->_ProgramCounter + *stepsTaken]));
+    return ((this->_ProgramCode[this->_ProgramCounter + *stepsTaken - 2] << 8) + (this->_ProgramCode[this->_ProgramCounter + *stepsTaken - 1]));
 #endif
 }
 
@@ -45,9 +45,15 @@ FlexRTE::BinaryConstant FlexRTE::Program::ReadConstant(unsigned int * stepsTaken
 
     switch (result.Size)
     {
-    case msByte: result.Value = ReadByte(stepsTaken);
-    case msWord: result.Value = ReadWord(stepsTaken);
-    case msDWord: result.Value = ReadDWord(stepsTaken);
+    case msByte:
+        result.Value = ReadByte(stepsTaken);
+        break;
+    case msWord:
+        result.Value = ReadWord(stepsTaken);
+        break;
+    case msDWord:
+        result.Value = ReadDWord(stepsTaken);
+        break;
     }
 
     return result;
@@ -55,7 +61,7 @@ FlexRTE::BinaryConstant FlexRTE::Program::ReadConstant(unsigned int * stepsTaken
 
 BinaryRegister FlexRTE::Program::ReadRegister(unsigned int * stepsTaken)
 {
-    return { msDWord, (Register)ReadByte(stepsTaken) };
+    return { (MemorySize)ReadByte(stepsTaken), (Register)ReadByte(stepsTaken) };
 }
 
 void FlexRTE::Program::PrintExecutionReport()
