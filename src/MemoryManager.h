@@ -1,3 +1,4 @@
+#pragma once
 #include "BuildOptions.h"
 #include "Memory.h"
 
@@ -15,5 +16,7 @@ namespace FlexRTE
         ~MemoryManager();
 
         char * GetMemoryArray();
+
+        Memory* GetMemory();
     };
 }

@@ -14,6 +14,11 @@ MemoryManager::MemoryManager()
     Memory::InitializeLookupTable();
     _MemoryArray = new char[OPTIONS_RTE_MEMORY_FULLSIZE];
     _Memory = new Memory(_MemoryArray, OPTIONS_RTE_MEMORY_FULLSIZE);
+
+    for (int c = 0; c < OPTIONS_RTE_MEMORY_FULLSIZE; c++)
+    {
+        _MemoryArray[c] = 0;
+    }
 }
 
 MemoryManager::~MemoryManager()
@@ -25,4 +30,9 @@ MemoryManager::~MemoryManager()
 char * FlexRTE::MemoryManager::GetMemoryArray()
 {
     return _MemoryArray;
+}
+
+Memory * FlexRTE::MemoryManager::GetMemory()
+{
+    return _Memory;
 }
