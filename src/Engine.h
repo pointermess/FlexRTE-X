@@ -23,9 +23,9 @@ namespace FlexRTE
     {
     private:
         Program * ActiveProgram;
-#if (OPTIONS_RTE_ENGINE_MULTIPROGRAM == 0)
+#if (!OPTIONS_RTE_ENGINE_MULTIPROGRAM)
 #else   
-        Program * Programs;
+        Program * Programs[16];
         unsigned char ProgramIndex = 0;
         unsigned char ProgramCount = 0;
 #endif
