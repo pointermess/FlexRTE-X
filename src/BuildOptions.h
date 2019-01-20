@@ -41,3 +41,5 @@
 // Uses direct pointers to read and write values from / to memory.
 // Might lead to crashes on some platforms.
 #define OPTIONS_RTE_MEMORY_USEPOINTERS true
+
+#define OPTIONS_RTE_ENGINE_MULTIPROGRAM true
