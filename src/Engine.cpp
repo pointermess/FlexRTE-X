@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include "Types.h"
+#include "ConsoleIO.h"
 
 using namespace FlexRTE;
 
@@ -37,7 +38,7 @@ void _FlexRTE_EXCEPTION_UNKNOWN_INSTRUCTION(FlexRTE::Program * program, unsigned
 {
     unsigned char instruction = program->ReadByte(steps);
 
-    std::cout << "[EXCEPTION] Instruction '" << (int)instruction << "' unknown." << std::endl;
+    ConsoleIO::PrintF("[EXCEPTION] Instruction '%u' (0x%02x) at position '%u' (0x%08x) is unknown.\n", instruction, instruction, program->GetProgramCounter(), program->GetProgramCounter());
 }
 
 // Instructions 
@@ -56,7 +57,21 @@ void _FlexRTE_Instruction_MOV_REG_REG(FlexRTE::Program * program, unsigned int *
     BinaryRegister arg1 = program->ReadRegister(steps);
     BinaryRegister arg2 = program->ReadRegister(steps);
 
-    program->_Memory->Write(arg1.Size, Memory::RegisterLookupTable[arg1.Register], program->_Memory->Read(arg2.Size, Memory::RegisterLookupTable[arg2.Register]));
+    program->_Memory->Write(
+        arg1.Size, Memory::RegisterLookupTable[arg1.Register],
+        program->_Memory->Read(arg2.Size, Memory::RegisterLookupTable[arg2.Register])
+    );
+}
+
+// MOV REG ADDR
+void _FlexRTE_Instruction_MOV_REG_ADDR(FlexRTE::Program * program, unsigned int * steps)
+{
+    BinaryRegister arg1 = program->ReadRegister(steps);
+    BinaryAddress arg2 = program->ReadAddress(steps);
+
+    unsigned int value = program->_Memory->Read(arg2.Size, arg2.GetEffectiveAddress());
+
+    program->_Memory->Write(arg1.Size, Memory::RegisterLookupTable[arg1.Register], value);
 }
 #endif
 
@@ -70,6 +85,7 @@ FlexRTE::Engine::Engine()
 
     InstructionLookupTable[faiMOV_REG_CONST] = _FlexRTE_Instruction_MOV_REG_CONST;
     InstructionLookupTable[faiMOV_REG_REG] = _FlexRTE_Instruction_MOV_REG_REG;
+    InstructionLookupTable[faiMOV_REG_ADDR] = _FlexRTE_Instruction_MOV_REG_ADDR;
     #endif
 
     MemoryManager = new FlexRTE::MemoryManager();
@@ -90,10 +106,8 @@ FlexRTE::LoadProgramResult FlexRTE::Engine::LoadProgram(Program * program)
         ActiveProgram = program;
         
 
-        unsigned int size = 1024;
-        unsigned int address = MemoryManager->GetMemory()->AllocateHeapMemory(size);
-
-        program->_Memory = new Memory(MemoryManager->GetMemoryArray() + address - size, 1024);
+        unsigned int address = MemoryManager->GetMemory()->AllocateHeapMemory(OPTIONS_RTE_MEMORY_APPSIZE);
+        program->_Memory = new Memory(MemoryManager->GetMemoryArray() + address - size, OPTIONS_RTE_MEMORY_APPSIZE);
 
         return LoadProgramResult::OK;
     }
@@ -104,10 +118,8 @@ FlexRTE::LoadProgramResult FlexRTE::Engine::LoadProgram(Program * program)
     ActiveProgram = program;
     ProgramCount += 1;
 
-    unsigned int size = 1024;
-    unsigned int address = MemoryManager->GetMemory()->AllocateHeapMemory(size);
-
-    program->_Memory = new Memory(MemoryManager->GetMemoryArray() + address - size, 1024);
+    unsigned int address = MemoryManager->GetMemory()->AllocateHeapMemory(OPTIONS_RTE_MEMORY_APPSIZE);
+    program->_Memory = new Memory(MemoryManager->GetMemoryArray() + address - OPTIONS_RTE_MEMORY_APPSIZE, OPTIONS_RTE_MEMORY_APPSIZE);
 
     return LoadProgramResult::OK;
     #endif
