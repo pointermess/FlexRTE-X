@@ -5,6 +5,9 @@
 #include "Types.h"
 #include "ConsoleIO.h"
 
+#if (OPTIONS_RTE_PROGRAM_KEEPCODEINMEMORY == 0)
+#include "DriverInterfaces/FileIO.h"
+#endif
 namespace FlexRTE
 {
 #pragma once
@@ -24,12 +27,15 @@ namespace FlexRTE
     private:
 
 
-#if (OPTIONS_RTE_PROGRAM_KEEPCODEINMEMORY == 1)
+#if (OPTIONS_RTE_PROGRAM_KEEPCODEINMEMORY == 0)
+        DriverInterface::FileStream * _ProgramFileStream;
+#elif (OPTIONS_RTE_PROGRAM_KEEPCODEINMEMORY == 1)
         unsigned char* _ProgramCode;
 #endif
         unsigned int _ProgramSize = 0;
         unsigned int _ProgramCounter = 0;
 
+        bool _ProgramJumped = false;
 
 
     public:
@@ -45,7 +51,8 @@ namespace FlexRTE
 
         void LoadFromFile(const char * path);
 
-        unsigned int GetProgramCounter() { unsigned int test = 0; return ReadDWord(&test); };
+        unsigned int GetProgramCounter() { return _ProgramCounter; };
+        void SetProgramCounter(unsigned int programCounter) { _ProgramCounter = programCounter; _ProgramJumped = true; };
 
         bool Step();
 
@@ -61,6 +68,7 @@ namespace FlexRTE
         // Complex types
         BinaryConstant ReadConstant(unsigned int * stepsTaken);
         BinaryRegister ReadRegister(unsigned int * stepsTaken);
+        BinaryAddress ReadAddress(unsigned int * stepsTaken);
         //char ReadAddress(unsigned int * stepsTaken);
 
         void PrintExecutionReport();

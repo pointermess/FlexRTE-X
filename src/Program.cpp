@@ -11,6 +11,8 @@ inline  char FlexRTE::Program::ReadByte(unsigned int * stepsTaken)
     *stepsTaken += 1;
 
 #if (OPTIONS_RTE_PROGRAM_KEEPCODEINMEMORY == 0)
+
+    return 1;
 #elif (OPTIONS_RTE_PROGRAM_KEEPCODEINMEMORY == 1)
     return this->_ProgramCode[this->_ProgramCounter + *stepsTaken - 1];
 #endif
@@ -21,6 +23,10 @@ short FlexRTE::Program::ReadWord(unsigned int * stepsTaken)
     *stepsTaken += 2;
 
 #if (OPTIONS_RTE_PROGRAM_KEEPCODEINMEMORY == 0)
+    _ProgramFileStream->SetPosition(this->_ProgramCounter + *stepsTaken - 2);
+    unsigned char * read = _ProgramFileStream->Read(2);
+    short a = (short)(*read);
+    return a;
 #elif (OPTIONS_RTE_PROGRAM_KEEPCODEINMEMORY == 1)
     return ((this->_ProgramCode[this->_ProgramCounter + *stepsTaken - 2] << 8) + (this->_ProgramCode[this->_ProgramCounter + *stepsTaken - 1]));
 #endif
@@ -33,6 +39,7 @@ int FlexRTE::Program::ReadDWord(unsigned int * stepsTaken)
     unsigned int beginAddr = this->_ProgramCounter + *stepsTaken - 4;
 
 #if (OPTIONS_RTE_PROGRAM_KEEPCODEINMEMORY == 0)
+    return 1;
 #elif (OPTIONS_RTE_PROGRAM_KEEPCODEINMEMORY == 1)
     return ((((((this->_ProgramCode[beginAddr] << 8) + this->_ProgramCode[beginAddr + 1]) << 8) + this->_ProgramCode[beginAddr + 2]) << 8) + this->_ProgramCode[beginAddr + 3]);
 #endif
@@ -64,6 +71,29 @@ BinaryRegister FlexRTE::Program::ReadRegister(unsigned int * stepsTaken)
     return { (MemorySize)ReadByte(stepsTaken), (Register)ReadByte(stepsTaken) };
 }
 
+BinaryAddress FlexRTE::Program::ReadAddress(unsigned int * stepsTaken)
+{
+    BinaryAddress result;
+
+    // read binary data
+    result.Size = (MemorySize)ReadByte(stepsTaken);
+    result.Struct = (unsigned char)ReadByte(stepsTaken);
+
+
+    if (result.GetLeftOperandType() == vtRegister)
+        result.LeftValue = _Memory->Read32(Memory::RegisterLookupTable[ReadByte(stepsTaken)]);
+    else if (result.GetLeftOperandType() == vtConstantValue)
+        result.LeftValue = ReadDWord(stepsTaken);
+
+    OperandType rightOp = result.GetRightOperandType();
+    if (rightOp == OperandType::vtRegister)
+        result.RightValue = _Memory->Read32(Memory::RegisterLookupTable[ReadByte(stepsTaken)]);
+    else if (rightOp == vtConstantValue)
+        result.RightValue = ReadDWord(stepsTaken);
+
+    return result;
+}
+
 void FlexRTE::Program::PrintExecutionReport()
 {
     ConsoleIO::PrintF("------------------------------\n");
@@ -74,13 +104,13 @@ void FlexRTE::Program::PrintExecutionReport()
     //ConsoleIO::PrintF("Memory Size: %u bytes\n\n", FPMemory_GetMemorySize(AProcessor->Memory));
 
     ConsoleIO::PrintF("Registers Data: \n");
-    unsigned int ebx = GetMemory()->Read(msDWord, Memory::RegisterLookupTable[farEBX]);
-    ConsoleIO::PrintF("EAX Register: 0x%08x\n", GetMemory()->Read(msDWord, Memory::RegisterLookupTable[farEAX]));
-    ConsoleIO::PrintF("EBX Register: 0x%08x\n", ebx);
-    ConsoleIO::PrintF("ECX Register: 0x%08x\n", GetMemory()->Read(msDWord, Memory::RegisterLookupTable[farECX]));
-    ConsoleIO::PrintF("EDX Register: 0x%08x\n", GetMemory()->Read(msDWord, Memory::RegisterLookupTable[farEDX]));
-    ConsoleIO::PrintF("ESP Register: 0x%08x\n", GetMemory()->Read(msDWord, Memory::RegisterLookupTable[farESP]));
-    ConsoleIO::PrintF("EBP Register: 0x%08x\n", GetMemory()->Read(msDWord, Memory::RegisterLookupTable[farEBP]));
+    unsigned int ebx = _Memory->Read(msDWord, Memory::RegisterLookupTable[farEBX]);
+    ConsoleIO::PrintF("EAX Register: 0x%08x\n", GetMemory()->ReadRegister(farEAX));
+    ConsoleIO::PrintF("EBX Register: 0x%08x\n", GetMemory()->ReadRegister(farEBX));
+    ConsoleIO::PrintF("ECX Register: 0x%08x\n", GetMemory()->ReadRegister(farECX));
+    ConsoleIO::PrintF("EDX Register: 0x%08x\n", GetMemory()->ReadRegister(farEDX));
+    ConsoleIO::PrintF("ESP Register: 0x%08x\n", GetMemory()->ReadRegister(farESP));
+    ConsoleIO::PrintF("EBP Register: 0x%08x\n", GetMemory()->ReadRegister(farEBP));
 
 
     printf("\n");
@@ -117,13 +147,24 @@ bool FlexRTE::Program::Initialize()
     return false;
 }
 
+/// Program::LoadFromFile
+/// Loads a file into the internal
+/// file memory.
+///
+/// @param: Path to file
 void FlexRTE::Program::LoadFromFile(const char * path)
 {
-    // needs to free last program from ram
+    // TODO: needs to free last program from ram
+
     unsigned int size = 0;
-#if (OPTIONS_RTE_PROGRAM_KEEPCODEINMEMORY == 1)
+
+#if (OPTIONS_RTE_PROGRAM_KEEPCODEINMEMORY == 0)
+    _ProgramFileStream = new DriverInterface::FileStream(path);
+    size = _ProgramFileStream->GetFileSize();
+#elif (OPTIONS_RTE_PROGRAM_KEEPCODEINMEMORY == 1)
     _ProgramCode = DriverInterface::FileIO::ReadFileBytes(path, &size);
 #endif
+
     _ProgramSize = size;
 }
 
@@ -131,13 +172,32 @@ bool FlexRTE::Program::Step()
 {
     unsigned int steps = 1;
 
+    Instruction instruction;
+
+
+#if (OPTIONS_RTE_PROGRAM_KEEPCODEINMEMORY == 0)
+    _ProgramFileStream->SetPosition(this->_ProgramCounter);
+    
+    unsigned char * stream = _ProgramFileStream->Read(1);
+
+    instruction = (Instruction)stream[0];
+
+    delete(stream);
+
+#elif (OPTIONS_RTE_PROGRAM_KEEPCODEINMEMORY == 1)
+    instruction = (Instruction)this->_ProgramCode[this->_ProgramCounter];
+#endif
+
+
 #if (OPTIONS_RTE_INTERPRETER_HIGHPERFORMANCE == 1)
-    int instruction = this->_ProgramCode[this->_ProgramCounter];
     LookupTable[instruction](this, &steps);
 #endif
 
-    _ProgramCounter += steps;
-
+    // change program counter only when no jump occured
+    if (!_ProgramJumped)
+        _ProgramCounter += steps;
+    else
+        _ProgramJumped = false;
 
     return _ProgramCounter >= _ProgramSize;
 }
