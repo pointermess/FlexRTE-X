@@ -48,7 +48,7 @@ void _FlexRTE_Instruction_MOV_REG_CONST(FlexRTE::Program * program, unsigned int
     BinaryRegister  arg1 = program->ReadRegister(steps);
     BinaryConstant arg2 = program->ReadConstant(steps);
 
-    program->_Memory->Write(arg1.Size, Memory::RegisterLookupTable[arg1.Register], arg2.Value);
+    program->_Memory->WriteRegister(arg1.Register, arg2.Value);
 }
 
 // MOV REG REG
@@ -69,9 +69,49 @@ void _FlexRTE_Instruction_MOV_REG_ADDR(FlexRTE::Program * program, unsigned int 
     BinaryRegister arg1 = program->ReadRegister(steps);
     BinaryAddress arg2 = program->ReadAddress(steps);
 
-    unsigned int value = program->_Memory->Read(arg2.Size, arg2.GetEffectiveAddress());
 
-    program->_Memory->Write(arg1.Size, Memory::RegisterLookupTable[arg1.Register], value);
+    program->_Memory->Write(arg1.Size, Memory::RegisterLookupTable[arg1.Register], program->_Memory->Read(arg2.Size, arg2.GetEffectiveAddress()));
+}
+
+// JMP LABEL
+void _FlexRTE_Instruction_JMP_LABEL(FlexRTE::Program * program, unsigned int * steps)
+{
+    unsigned int arg1 = program->ReadByte(steps);
+    arg1 = program->ReadDWord(steps);
+
+    program->SetProgramCounter(arg1);
+}
+
+// ADD REG CONST
+void _FlexRTE_Instruction_ADD_REG_CONST(FlexRTE::Program * program, unsigned int * steps)
+{
+    BinaryRegister  arg1 = program->ReadRegister(steps);
+    BinaryConstant arg2 = program->ReadConstant(steps);
+
+
+    program->_Memory->WriteRegister(arg1.Register, program->_Memory->ReadRegister(arg1.Register) + arg2.Value);
+}
+
+// CMP REG CONST
+void _FlexRTE_Instruction_CMP_REG_CONST(FlexRTE::Program * program, unsigned int * steps)
+{
+    BinaryRegister  arg1 = program->ReadRegister(steps);
+    BinaryConstant arg2 = program->ReadConstant(steps);
+
+    unsigned int val0 = program->_Memory->ReadRegister(arg1.Register);
+    unsigned int val1 = arg2.Value;
+
+
+    program->_Memory->WriteFlag((val0 == val1) | (val0 > val1) << 1);
+}
+
+// JMP LABEL
+void _FlexRTE_Instruction_JE_LABEL(FlexRTE::Program * program, unsigned int * steps)
+{
+    BinaryConstant arg1 = program->ReadConstant(steps);
+
+    if (program->_Memory->ReadFlag() & 0x1)
+        program->SetProgramCounter(arg1.Value);
 }
 #endif
 
@@ -86,6 +126,13 @@ FlexRTE::Engine::Engine()
     InstructionLookupTable[faiMOV_REG_CONST] = _FlexRTE_Instruction_MOV_REG_CONST;
     InstructionLookupTable[faiMOV_REG_REG] = _FlexRTE_Instruction_MOV_REG_REG;
     InstructionLookupTable[faiMOV_REG_ADDR] = _FlexRTE_Instruction_MOV_REG_ADDR;
+
+    InstructionLookupTable[faiADD_REG_CONST] = _FlexRTE_Instruction_ADD_REG_CONST;
+
+    InstructionLookupTable[faiCMP_REG_CONST] = _FlexRTE_Instruction_CMP_REG_CONST;
+
+    InstructionLookupTable[faiJMP_LABEL] = _FlexRTE_Instruction_JMP_LABEL;
+    InstructionLookupTable[faiJE_LABEL] = _FlexRTE_Instruction_JE_LABEL;
     #endif
 
     MemoryManager = new FlexRTE::MemoryManager();
@@ -99,7 +146,8 @@ FlexRTE::LoadProgramResult FlexRTE::Engine::LoadProgram(Program * program)
     program->LookupTable = InstructionLookupTable;
 #endif
 
-    #if (!OPTIONS_RTE_ENGINE_MULTIPROGRAM)
+    // Branching for multiple programs build option
+#if (!OPTIONS_RTE_ENGINE_MULTIPROGRAM)
     if (ActiveProgram == nullptr)
     {
         // Set it as active program
@@ -113,7 +161,7 @@ FlexRTE::LoadProgramResult FlexRTE::Engine::LoadProgram(Program * program)
     }
 
     return LoadProgramResult::UnloadFirst;
-    #else
+#else
     Programs[ProgramCount] = program;
     ActiveProgram = program;
     ProgramCount += 1;
@@ -122,7 +170,7 @@ FlexRTE::LoadProgramResult FlexRTE::Engine::LoadProgram(Program * program)
     program->_Memory = new Memory(MemoryManager->GetMemoryArray() + address - OPTIONS_RTE_MEMORY_APPSIZE, OPTIONS_RTE_MEMORY_APPSIZE);
 
     return LoadProgramResult::OK;
-    #endif
+#endif
 
 
 }
