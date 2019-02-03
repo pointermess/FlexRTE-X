@@ -28,7 +28,15 @@ namespace FlexRTE
             bool IsOpen();
             void PrintF(const char * format, ...);
 
+            long GetPosition();
+            void SetPosition(long position);
+
+            long GetFileSize();
+
+            unsigned char * Read(long length);
+
             void Close();
         };
     }
 }
+

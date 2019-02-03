@@ -61,6 +61,41 @@ void FlexRTE::DriverInterface::FileStream::PrintF(const char * format, ...)
 #endif
 }
 
+long FlexRTE::DriverInterface::FileStream::GetPosition()
+{
+#if (OPTIONS_TARGET_BASED_WINDOWS)
+    return ftell(_File);
+#endif
+}
+
+void FlexRTE::DriverInterface::FileStream::SetPosition(long position)
+{
+#if (OPTIONS_TARGET_BASED_WINDOWS)
+    fseek(_File, position, SEEK_SET);
+#endif
+}
+
+long FlexRTE::DriverInterface::FileStream::GetFileSize()
+{
+    long position = GetPosition();
+
+    fseek(_File, 0, SEEK_END);
+    long ret = ftell(_File);
+
+    SetPosition(position);
+
+    return ret;
+}
+
+unsigned char * FlexRTE::DriverInterface::FileStream::Read(long length)
+{
+    unsigned char *ret = (unsigned char*)malloc(length);
+
+    fread(ret, 1, length, _File);
+
+    return ret;
+}
+
 void FlexRTE::DriverInterface::FileStream::Close()
 {
 #if (OPTIONS_TARGET_BASED_WINDOWS)
