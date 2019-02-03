@@ -177,9 +177,18 @@ namespace FlexRTE {
     struct BinaryAddress
     {
         MemorySize Size;
-        unsigned int Value;
+        unsigned char Struct;
+
+        unsigned int LeftValue;
+        unsigned int RightValue;
+
+        unsigned int GetEffectiveAddress();
+
+        OperandType GetLeftOperandType();
+        OperandType GetRightOperandType();
+        OperationType GetOperationType();
     };
 
-
+    MemorySize GetRegisterSize(Register reg);
 }
 
