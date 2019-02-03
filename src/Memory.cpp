@@ -1,14 +1,17 @@
 #include "Memory.h"
-char FlexRTE::Memory::RegisterLookupTable[18];
-char FlexRTE::Memory::MemoryStartPosition;
 
-FlexRTE::Memory::Memory(char * memory, unsigned int size)
+using namespace FlexRTE;
+
+char Memory::RegisterLookupTable[18];
+char Memory::MemoryStartPosition;
+
+Memory::Memory(char * memory, unsigned int size)
 {
     _Memory = memory;
     _Size = size;
 }
 
-unsigned int FlexRTE::Memory::Read(const MemorySize size, const unsigned int position)
+unsigned int Memory::Read(const MemorySize size, const unsigned int position)
 {
     switch (size)
     {
@@ -26,31 +29,22 @@ unsigned int FlexRTE::Memory::Read(const MemorySize size, const unsigned int pos
 
 }
 
-const unsigned char FlexRTE::Memory::Read8(const unsigned int position)
+const unsigned char Memory::Read8(const unsigned int position)
 {
     return _Memory[position];
-
-    unsigned char * memory = (unsigned char*)(_Memory + position);
-    return *memory;
 }
 
-const unsigned short FlexRTE::Memory::Read16(const unsigned int position)
+const unsigned short Memory::Read16(const unsigned int position)
 {
-    return ((_Memory[position] << 8) + (_Memory[position + 1]));
-
-    unsigned short * memory = (unsigned short*)(_Memory + position);
-    return *memory;
+    return ((unsigned char)_Memory[position] << 8) + (unsigned char)_Memory[position + 1] << 16;
 }
 
-const unsigned int FlexRTE::Memory::Read32(const unsigned int position)
+const unsigned int Memory::Read32(const unsigned int position)
 {
-    return ((((((_Memory[position] << 8) + _Memory[position + 1]) << 8) + _Memory[position + 2]) << 8) + _Memory[position + 3]);
-
-    unsigned int * memory = (unsigned int*)(_Memory + position);
-    return *memory;
+    return ((unsigned char)_Memory[position] << 24) + ((unsigned char)_Memory[position + 1] << 16) + ((unsigned char)_Memory[position + 2] << 8) + (unsigned char)_Memory[position + 3];
 }
 
-void FlexRTE::Memory::Write(const MemorySize size, const unsigned int position, const unsigned int value)
+void Memory::Write(const MemorySize size, const unsigned int position, const unsigned int value)
 {
     switch (size)
     {
@@ -66,44 +60,65 @@ void FlexRTE::Memory::Write(const MemorySize size, const unsigned int position, 
     }
 }
 
-inline void FlexRTE::Memory::Write8(const unsigned int position, const unsigned char value)
+inline void Memory::Write8(const unsigned int position, const unsigned char value)
 {
     _Memory[position] = value;
-
-    return;
-    unsigned char * memory = (unsigned char*)(_Memory + position);
-    *memory = value;
 }
 
-inline void FlexRTE::Memory::Write16(const unsigned int position, const unsigned short value)
+inline void Memory::Write16(const unsigned int position, const unsigned short value)
 {
     _Memory[position] = value >> 8;
     _Memory[position + 1] = value;
-    return;
-
-    unsigned short * memory = (unsigned short*)(_Memory + position);
-    *memory = value;
 }
 
-inline void FlexRTE::Memory::Write32(const unsigned int position, const unsigned int value)
+inline void Memory::Write32(const unsigned int position, const unsigned int value)
 {
     _Memory[position] = value >> 24;
     _Memory[position + 1] = value >> 16;
     _Memory[position + 2] = value >> 8;
     _Memory[position + 3] = value;
-    return;
-    unsigned int * memory = (unsigned int*)(_Memory + position);
-    *memory = value;
+}
+
+unsigned int FlexRTE::Memory::GetRegisterAddres(Register reg)
+{
+    return RegisterLookupTable[reg];
+}
+
+unsigned int FlexRTE::Memory::ReadRegister(Register reg)
+{
+    return Read(GetRegisterSize(reg), GetRegisterAddres(reg));
+}
+
+void FlexRTE::Memory::WriteRegister(Register reg, const unsigned int value)
+{
+    Write(GetRegisterSize(reg), GetRegisterAddres(reg), value);
+}
+
+unsigned char FlexRTE::Memory::ReadFlag()
+{
+    return Read8(MemoryFlagPosition);
+}
+
+void FlexRTE::Memory::WriteFlag(unsigned char value)
+{
+    Write8(MemoryFlagPosition, value);
+}
+
+unsigned int FlexRTE::Memory::GetEffectiveAddress(BinaryAddress binaryAddress)
+{
+    return 0;
 }
 
 ///
-const unsigned int FlexRTE::Memory::FindAvailableHeapMemory(const unsigned int size)
+const unsigned int Memory::FindAvailableHeapMemory(const unsigned int size)
 {
     unsigned int address = _Size - 6;
     bool first = true;
 
+    // loop until found (will break if found, or return 0 when end conditions are met)
     while (true)
     {
+        // parse current heap section
         unsigned char heapUsed = Read8(address + 5);
         unsigned int heapSize = Read32(address + 1);
 
@@ -113,38 +128,17 @@ const unsigned int FlexRTE::Memory::FindAvailableHeapMemory(const unsigned int s
             if (heapSize == 0 || heapSize >= size)
                 break;
         }
+
+        // check if next section would be out of memory
+        // if not, then decrese address to next heap section
         if (address - heapSize > address) return 0;
         address -= (heapSize + 6);
-        
-
-        
-        /*
-        if (heapUsed == 0)
-        {
-            if (heapSize == 0 || heapSize >= size)
-            {
-                // current address was never allocated or has enough space
-                // so it can be (re)allocated
-                return address - 5;
-            }
-            address -= heapSize - 5;
-        }
-        else if (heapUsed == 1)
-        {
-            if (address - heapSize - 5 > address) break;
-            address -= heapSize - 5;
-        }
-        
-        
-        if (address - 5 > address) break;
-        address -= 5;
-        */
     }
 
     return address;
 }
 
-const unsigned int FlexRTE::Memory::AllocateHeapMemory(const unsigned int size)
+const unsigned int Memory::AllocateHeapMemory(const unsigned int size)
 {
     unsigned int address = FindAvailableHeapMemory(size);
 
@@ -157,7 +151,7 @@ const unsigned int FlexRTE::Memory::AllocateHeapMemory(const unsigned int size)
     return address;
 }
 
-void FlexRTE::Memory::FreeHeapMemory(const unsigned int address)
+void Memory::FreeHeapMemory(const unsigned int address)
 {
     unsigned char heapUsed = Read8(address + 5);
     unsigned char heapSize = Read32(address + 1);
@@ -168,7 +162,7 @@ void FlexRTE::Memory::FreeHeapMemory(const unsigned int address)
     }
 }
 
-void FlexRTE::Memory::InitializeLookupTable()
+void Memory::InitializeLookupTable()
 {
 #if (OPTIONS_RTE_MEMORY_REGISTERLOOKUPTABLE)
     // Initialize RegisterLookupTable.
@@ -195,6 +189,17 @@ void FlexRTE::Memory::InitializeLookupTable()
     RegisterLookupTable[16] = 16;
     RegisterLookupTable[17] = 20;
 #endif
-    // Defines the first available byte after all registers.
-    MemoryStartPosition = 24;
+
+    // Defines the first available byte after all registers and flags.
+    // 0  : eax (4 bytes)
+    // 4  : ebx (4 bytes)
+    // 8  : ecx (4 bytes)
+    // 12 : edx (4 bytes)
+    // 16 : esp (4 bytes)
+    // 20 : ebp (4 bytes)
+    // 24 : esi (4 bytes)
+    // 28 : edi (4 bytes)
+    // 32 : flags (1 byte)
+    // 33 : MEMORY BEGIN
+    MemoryStartPosition = 33;
 }

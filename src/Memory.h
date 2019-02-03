@@ -9,6 +9,8 @@ namespace FlexRTE
         char * _Memory;
         unsigned int _Size;
     public:
+        const unsigned int MemoryFlagPosition = 32;
+        
         Memory(char * memory, unsigned int size);
 
 
@@ -22,6 +24,16 @@ namespace FlexRTE
         inline void Write8(const unsigned int position, const unsigned char value);
         inline void Write16(const unsigned int position, const unsigned short value);
         inline void Write32(const unsigned int position, const unsigned int value);
+
+        unsigned int GetRegisterAddres(Register reg);
+        unsigned int ReadRegister(Register reg);
+        void WriteRegister(Register reg, const unsigned int value);
+
+        unsigned char ReadFlag();
+        void WriteFlag(unsigned char value);
+
+
+        unsigned int GetEffectiveAddress(BinaryAddress binaryAddress);
 
         // Memory read & write functions
 
