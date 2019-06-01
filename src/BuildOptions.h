@@ -23,12 +23,12 @@
 // 0 = Reads program code from source each instruction (very slow)
 // 1 = Keeps program code in memory (utilizes dynamic memory allocation at startup but is faster than option 0)
 // 2 = Cached program code (combination of the above, to be done)
-#define OPTIONS_RTE_PROGRAM_KEEPCODEINMEMORY 1
+#define OPTIONS_RTE_PROGRAM_KEEPCODEINMEMORY 0
 
 // Memory
 // Sizes for engine and apps
-#define OPTIONS_RTE_MEMORY_FULLSIZE 128000
-#define OPTIONS_RTE_MEMORY_APPSIZE 8000
+#define OPTIONS_RTE_MEMORY_FULLSIZE 0xA0
+#define OPTIONS_RTE_MEMORY_APPSIZE 0x9a
 #define OPTIONS_RTE_MEMORY_ALLOWDYNAMICAPPSIZE true
 
 // OPTIONS_RTE_MEMORY_CALCULATEADDRESS
