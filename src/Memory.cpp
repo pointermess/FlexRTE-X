@@ -109,6 +109,27 @@ unsigned int FlexRTE::Memory::GetEffectiveAddress(BinaryAddress binaryAddress)
     return 0;
 }
 
+void FlexRTE::Memory::Push(const unsigned int value)
+{
+    unsigned int nextStackAddress = GetCurrentStackAddress() + 4;
+    Write32(nextStackAddress, value);
+    WriteRegister(farESP, nextStackAddress);
+}
+
+const unsigned int FlexRTE::Memory::Pop()
+{
+    unsigned int currentStackAddress = GetCurrentStackAddress();
+    unsigned int value = Read32(currentStackAddress);
+    WriteRegister(farESP, currentStackAddress - 4);
+
+    return value;
+}
+
+const unsigned int FlexRTE::Memory::GetCurrentStackAddress()
+{
+    return ReadRegister(farESP);
+}
+
 ///
 const unsigned int Memory::FindAvailableHeapMemory(const unsigned int size)
 {
