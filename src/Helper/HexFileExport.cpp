@@ -2,7 +2,7 @@
 using namespace FlexRTE::DriverInterface;
 void HexFileExporter::ExportArrayToFile(char * arrayPtr, unsigned int arrayLength,const char * path)
 {
-    FileStream * fs = new FileStream(path);
+    FileStream * fs = new FileStream(path, "w+");
 
     if (fs->IsOpen())
     {
@@ -36,7 +36,7 @@ void HexFileExporter::ExportArrayToFile(char * arrayPtr, unsigned int arrayLengt
 
 void HexFileExporter::ExportArrayToBinaryFile(char * arrayPtr, unsigned int arrayLength, const char * path)
 {
-    FileStream * fs = new FileStream(path);
+    FileStream * fs = new FileStream(path, "w+");
 
     if (fs->IsOpen())
     {
