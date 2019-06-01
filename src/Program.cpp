@@ -11,8 +11,11 @@ inline  char FlexRTE::Program::ReadByte(unsigned int * stepsTaken)
     *stepsTaken += 1;
 
 #if (OPTIONS_RTE_PROGRAM_KEEPCODEINMEMORY == 0)
-
-    return 1;
+    _ProgramFileStream->SetPosition(this->_ProgramCounter + *stepsTaken - 1);
+    unsigned char * read = _ProgramFileStream->Read(1);
+    char a = read[0];
+    delete(read);
+    return a;
 #elif (OPTIONS_RTE_PROGRAM_KEEPCODEINMEMORY == 1)
     return this->_ProgramCode[this->_ProgramCounter + *stepsTaken - 1];
 #endif
@@ -25,7 +28,8 @@ short FlexRTE::Program::ReadWord(unsigned int * stepsTaken)
 #if (OPTIONS_RTE_PROGRAM_KEEPCODEINMEMORY == 0)
     _ProgramFileStream->SetPosition(this->_ProgramCounter + *stepsTaken - 2);
     unsigned char * read = _ProgramFileStream->Read(2);
-    short a = (short)(*read);
+    short a = (read[0] << 8) + (read[1]);
+    delete(read);
     return a;
 #elif (OPTIONS_RTE_PROGRAM_KEEPCODEINMEMORY == 1)
     return ((this->_ProgramCode[this->_ProgramCounter + *stepsTaken - 2] << 8) + (this->_ProgramCode[this->_ProgramCounter + *stepsTaken - 1]));
@@ -39,7 +43,11 @@ int FlexRTE::Program::ReadDWord(unsigned int * stepsTaken)
     unsigned int beginAddr = this->_ProgramCounter + *stepsTaken - 4;
 
 #if (OPTIONS_RTE_PROGRAM_KEEPCODEINMEMORY == 0)
-    return 1;
+    _ProgramFileStream->SetPosition(this->_ProgramCounter + *stepsTaken - 4);
+    unsigned char * read = _ProgramFileStream->Read(4);
+    int a = (read[0] << 24) + (read[1] << 16) + (read[2] << 8) + (read[3]);
+    delete(read);
+    return a;
 #elif (OPTIONS_RTE_PROGRAM_KEEPCODEINMEMORY == 1)
     return ((((((this->_ProgramCode[beginAddr] << 8) + this->_ProgramCode[beginAddr + 1]) << 8) + this->_ProgramCode[beginAddr + 2]) << 8) + this->_ProgramCode[beginAddr + 3]);
 #endif
@@ -104,13 +112,12 @@ void FlexRTE::Program::PrintExecutionReport()
     //ConsoleIO::PrintF("Memory Size: %u bytes\n\n", FPMemory_GetMemorySize(AProcessor->Memory));
 
     ConsoleIO::PrintF("Registers Data: \n");
-    unsigned int ebx = _Memory->Read(msDWord, Memory::RegisterLookupTable[farEBX]);
-    ConsoleIO::PrintF("EAX Register: 0x%08x\n", GetMemory()->ReadRegister(farEAX));
-    ConsoleIO::PrintF("EBX Register: 0x%08x\n", GetMemory()->ReadRegister(farEBX));
-    ConsoleIO::PrintF("ECX Register: 0x%08x\n", GetMemory()->ReadRegister(farECX));
-    ConsoleIO::PrintF("EDX Register: 0x%08x\n", GetMemory()->ReadRegister(farEDX));
-    ConsoleIO::PrintF("ESP Register: 0x%08x\n", GetMemory()->ReadRegister(farESP));
-    ConsoleIO::PrintF("EBP Register: 0x%08x\n", GetMemory()->ReadRegister(farEBP));
+    ConsoleIO::PrintF("EAX Register: 0x%08x\n", _Memory->ReadRegister(farEAX));
+    ConsoleIO::PrintF("EBX Register: 0x%08x\n", _Memory->ReadRegister(farEBX));
+    ConsoleIO::PrintF("ECX Register: 0x%08x\n", _Memory->ReadRegister(farECX));
+    ConsoleIO::PrintF("EDX Register: 0x%08x\n", _Memory->ReadRegister(farEDX));
+    ConsoleIO::PrintF("ESP Register: 0x%08x\n", _Memory->ReadRegister(farESP));
+    ConsoleIO::PrintF("EBP Register: 0x%08x\n", _Memory->ReadRegister(farEBP));
 
 
     printf("\n");
