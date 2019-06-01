@@ -38,7 +38,9 @@ namespace FlexRTE
         // Memory read & write functions
 
         // Stack methods
-        void Push();
+        void Push(const unsigned int value);
+        const unsigned int Pop();
+        const unsigned int GetCurrentStackAddress();
 
         // Heap methods
         const unsigned int FindAvailableHeapMemory(const unsigned int size);
