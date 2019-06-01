@@ -55,6 +55,8 @@ namespace FlexRTE {
         faiMOV_ADDR_REG = 0xA4,
         faiMOV_ADDR_ADDR = 0xA5,
 
+        faiLEA_REG_ADDR = 0xA8,
+
         // Stack instructions (0xAC - 0xAF)
         faiPUSH_CONST = 0xAC,
         faiPUSH_REG = 0xAD,
