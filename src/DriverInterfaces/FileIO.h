@@ -23,7 +23,7 @@ namespace FlexRTE
             FILE * _File;
 #endif
         public:
-            FileStream(const char * path);
+            FileStream(const char * path, const char * mode = "r+");
             ~FileStream();
             bool IsOpen();
             void PrintF(const char * format, ...);

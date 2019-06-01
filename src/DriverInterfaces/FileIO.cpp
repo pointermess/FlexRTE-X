@@ -30,10 +30,10 @@ unsigned char* FlexRTE::DriverInterface::FileIO::ReadFileBytes(const char *name,
 #endif
 }
 
-FlexRTE::DriverInterface::FileStream::FileStream(const char * path)
+FlexRTE::DriverInterface::FileStream::FileStream(const char * path, const char * mode)
 {
 #if (OPTIONS_TARGET_BASED_WINDOWS)
-    fopen_s(&_File, path, "w+");
+    fopen_s(&_File, path, mode);
 #endif
 }
 
