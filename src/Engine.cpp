@@ -52,7 +52,7 @@ void _FlexRTE_PseudoInstruction_DB(FlexRTE::Program * program, unsigned int * st
     {
         char value = program->ReadByte(steps);
 
-        program->_Memory->Write8(currentAddress, value);
+        program->_Memory->Write8(currentAddress + 4, value);
 
         currentAddress += 1;
     }
@@ -61,7 +61,7 @@ void _FlexRTE_PseudoInstruction_DB(FlexRTE::Program * program, unsigned int * st
 }
 
 void _FlexRTE_PseudoInstruction_DW(FlexRTE::Program * program, unsigned int * steps)
-{
+{ 
     unsigned int size = program->ReadDWord(steps);
 
     unsigned int currentAddress = program->_Memory->GetCurrentStackAddress();
@@ -70,7 +70,7 @@ void _FlexRTE_PseudoInstruction_DW(FlexRTE::Program * program, unsigned int * st
     {
         short value = program->ReadWord(steps);
 
-        program->_Memory->Write16(currentAddress, value);
+        program->_Memory->Write16(currentAddress + 4, value);
 
         currentAddress += 2;
     }
@@ -88,7 +88,7 @@ void _FlexRTE_PseudoInstruction_DD(FlexRTE::Program * program, unsigned int * st
     {
         int value = program->ReadDWord(steps);
 
-        program->_Memory->Write32(currentAddress, value);
+        program->_Memory->Write32(currentAddress + 4, value);
 
         currentAddress += 4;
     }
@@ -174,6 +174,14 @@ void _FlexRTE_Instruction_PUSH_REG(FlexRTE::Program * program, unsigned int * st
     program->_Memory->Push(program->_Memory->ReadRegister(arg1.Register));
 }
 
+// PUSH ADDR
+void _FlexRTE_Instruction_PUSH_ADDR(FlexRTE::Program * program, unsigned int * steps)
+{
+    BinaryAddress arg1 = program->ReadAddress(steps);
+
+    program->_Memory->Push(program->_Memory->Read(arg1.Size, arg1.GetEffectiveAddress()));
+}
+
 // POP REG
 void _FlexRTE_Instruction_POP_REG(FlexRTE::Program * program, unsigned int * steps)
 {
@@ -190,8 +198,52 @@ void _FlexRTE_Instruction_ADD_REG_CONST(FlexRTE::Program * program, unsigned int
     BinaryRegister  arg1 = program->ReadRegister(steps);
     BinaryConstant arg2 = program->ReadConstant(steps);
 
-
     program->_Memory->WriteRegister(arg1.Register, program->_Memory->ReadRegister(arg1.Register) + arg2.Value);
+}
+
+// ADD REG REG
+void _FlexRTE_Instruction_ADD_REG_REG(FlexRTE::Program * program, unsigned int * steps)
+{
+    BinaryRegister  arg1 = program->ReadRegister(steps);
+    BinaryRegister  arg2 = program->ReadRegister(steps);
+
+    program->_Memory->WriteRegister(arg1.Register, program->_Memory->ReadRegister(arg1.Register) + program->_Memory->ReadRegister(arg2.Register));
+}
+
+// SUB REG CONST
+void _FlexRTE_Instruction_SUB_REG_CONST(FlexRTE::Program * program, unsigned int * steps)
+{
+    BinaryRegister  arg1 = program->ReadRegister(steps);
+    BinaryConstant arg2 = program->ReadConstant(steps);
+
+    program->_Memory->WriteRegister(arg1.Register, program->_Memory->ReadRegister(arg1.Register) - arg2.Value);
+}
+
+// SUB REG REG
+void _FlexRTE_Instruction_SUB_REG_REG(FlexRTE::Program * program, unsigned int * steps)
+{
+    BinaryRegister  arg1 = program->ReadRegister(steps);
+    BinaryRegister  arg2 = program->ReadRegister(steps);
+
+    program->_Memory->WriteRegister(arg1.Register, program->_Memory->ReadRegister(arg1.Register) - program->_Memory->ReadRegister(arg2.Register));
+}
+
+// MUL REG CONST
+void _FlexRTE_Instruction_MUL_REG_CONST(FlexRTE::Program * program, unsigned int * steps)
+{
+    BinaryRegister  arg1 = program->ReadRegister(steps);
+    BinaryConstant arg2 = program->ReadConstant(steps);
+
+    program->_Memory->WriteRegister(arg1.Register, program->_Memory->ReadRegister(arg1.Register) * arg2.Value);
+}
+
+// MUL REG REG
+void _FlexRTE_Instruction_MUL_REG_REG(FlexRTE::Program * program, unsigned int * steps)
+{
+    BinaryRegister  arg1 = program->ReadRegister(steps);
+    BinaryRegister  arg2 = program->ReadRegister(steps);
+
+    program->_Memory->WriteRegister(arg1.Register, program->_Memory->ReadRegister(arg1.Register) * program->_Memory->ReadRegister(arg2.Register));
 }
 
 // CMP REG CONST
@@ -343,9 +395,15 @@ FlexRTE::Engine::Engine()
 
     InstructionLookupTable[faiPUSH_CONST] = _FlexRTE_Instruction_PUSH_CONST;
     InstructionLookupTable[faiPUSH_REG] = _FlexRTE_Instruction_PUSH_REG;
+    InstructionLookupTable[faiPUSH_ADDR] = _FlexRTE_Instruction_PUSH_ADDR;
     InstructionLookupTable[faiPOP_REG] = _FlexRTE_Instruction_POP_REG;
 
     InstructionLookupTable[faiADD_REG_CONST] = _FlexRTE_Instruction_ADD_REG_CONST;
+    InstructionLookupTable[faiADD_REG_REG] = _FlexRTE_Instruction_ADD_REG_REG;
+    InstructionLookupTable[faiSUB_REG_CONST] = _FlexRTE_Instruction_SUB_REG_CONST;
+    InstructionLookupTable[faiSUB_REG_REG] = _FlexRTE_Instruction_SUB_REG_REG;
+    InstructionLookupTable[faiMUL_REG_CONST] = _FlexRTE_Instruction_MUL_REG_CONST;
+    InstructionLookupTable[faiMUL_REG_REG] = _FlexRTE_Instruction_MUL_REG_REG;
 
     InstructionLookupTable[faiCMP_REG_CONST] = _FlexRTE_Instruction_CMP_REG_CONST;
     InstructionLookupTable[faiCMP_REG_REG] = _FlexRTE_Instruction_CMP_REG_REG;
@@ -398,7 +456,7 @@ FlexRTE::LoadProgramResult FlexRTE::Engine::LoadProgram(Program * program)
 
     unsigned int address = MemoryManager->GetMemory()->AllocateHeapMemory(OPTIONS_RTE_MEMORY_APPSIZE);
     program->_Memory = new Memory(MemoryManager->GetMemoryArray() + address - OPTIONS_RTE_MEMORY_APPSIZE, OPTIONS_RTE_MEMORY_APPSIZE);
-    program->_Memory->WriteRegister(farESP, Memory::MemoryStartPosition);
+    program->_Memory->WriteRegister(farESP, Memory::MemoryStartPosition - 4);
 
     return LoadProgramResult::OK;
 #endif
