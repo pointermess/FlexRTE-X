@@ -49,6 +49,8 @@ int FlexRTE::Program::ReadDWord(unsigned int * stepsTaken)
     delete(read);
     return a;
 #elif (OPTIONS_RTE_PROGRAM_KEEPCODEINMEMORY == 1)
+    //int* address = (int*)this->_ProgramCode + beginAddr;
+    //return *address;
     return ((((((this->_ProgramCode[beginAddr] << 8) + this->_ProgramCode[beginAddr + 1]) << 8) + this->_ProgramCode[beginAddr + 2]) << 8) + this->_ProgramCode[beginAddr + 3]);
 #endif
 }

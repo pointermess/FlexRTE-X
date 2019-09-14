@@ -4,7 +4,7 @@ unsigned int FlexRTE::BinaryAddress::GetEffectiveAddress()
 {
     OperationType opType = GetOperationType();
 
-    if (opType == otAddition)
+     if (opType == otAddition)
     {
         return LeftValue + RightValue;
     }
